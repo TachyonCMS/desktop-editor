@@ -2,6 +2,13 @@
 
 Manage TachyonCMS files locally, without any backend servers required.
 
+## Install Quasar CLI
+
+The Quasar CLI is required to run the hot-loading dev environment or create the production build.
+
+Follow the instructions from Quasar, noting that Node 10 or Node 12 is required. Other versions are known to NOT WORK.
+https://v1.quasar.dev/quasar-cli/installation
+
 ## Install the dependencies
 
 ```bash
