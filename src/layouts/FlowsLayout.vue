@@ -72,7 +72,6 @@
 
     <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
       <!-- drawer content -->
-      {{ currentDrawer }}
       <component :is="currentDrawer" @toggleDrawer="toggleDrawer"></component>
     </q-drawer>
     <q-page-container>
