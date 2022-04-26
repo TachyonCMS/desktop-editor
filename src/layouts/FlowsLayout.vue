@@ -2,92 +2,18 @@
   <q-layout view="hHh lpR fFf">
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-btn dense flat round icon="mdi-menu" @click="toggleLeftDrawer" />
+        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title>
           <router-link to="/" class="router-link navbar-title toolbar-text">
             <q-avatar size="md" rounded class="cursor-pointer gt-xs">
-              <img src="~/assets/izzup-nut-icon.svg" />
+              <img src="~/assets/logo.svg" />
             </q-avatar>
             {{ appName }}
           </router-link>
         </q-toolbar-title>
 
         <q-space></q-space>
-
-        <q-btn-dropdown
-          flat
-          icon="mdi-account-circle"
-          :label="username"
-          v-if="isSignedIn"
-          class="gt-xs"
-        >
-          <q-list>
-            <q-item clickable v-close-popup to="/user/dashboard" v-ripple>
-              <q-item-section>
-                <q-item-label>Dashboard</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup to="/user/profile" v-ripple>
-              <q-item-section>
-                <q-item-label>Profile</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup to="/user/settings" v-ripple>
-              <q-item-section>
-                <q-item-label>Settings</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              clickable
-              v-close-popup
-              @click="this.$emit('signOut')"
-              v-ripple
-            >
-              <q-item-section>
-                <q-item-label>Sign out</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-        <q-btn-dropdown flat :label="username" v-if="isSignedIn" class="xs">
-          <q-list>
-            <q-item clickable v-close-popup to="/user/dashboard" v-ripple>
-              <q-item-section>
-                <q-item-label>Dashboard</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup to="/user/profile" v-ripple>
-              <q-item-section>
-                <q-item-label>Profile</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup to="/user/settings" v-ripple>
-              <q-item-section>
-                <q-item-label>Settings</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              clickable
-              v-close-popup
-              @click="this.$emit('signOut')"
-              v-ripple
-            >
-              <q-item-section>
-                <q-item-label>Sign out</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-        <template v-else>
-          <q-btn
-            class="glossy text-weight-bolder cta"
-            label="Enter"
-            to="/user/dashboard"
-            v-ripple
-            v-if="showEntryNav"
-          ></q-btn>
-        </template>
       </q-toolbar>
       <template v-if="pageFlowData && flowId && pageFlowData.id === flowId">
         <q-card square class="page-title glossy">
@@ -146,6 +72,7 @@
 
     <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
       <!-- drawer content -->
+      {{ currentDrawer }}
       <component :is="currentDrawer" @toggleDrawer="toggleDrawer"></component>
     </q-drawer>
     <q-page-container>
@@ -174,7 +101,6 @@ export default defineComponent({
 
   components: {
     FlowsDrawer,
-    PubFlowDrawer,
   },
 
   props: [],
@@ -184,8 +110,6 @@ export default defineComponent({
     const route = useRoute();
 
     const currentDrawer = "flows-drawer";
-
-    const useAuth = false;
 
     const { updateFlowProp, flowMap } = useFlows();
 
@@ -217,6 +141,7 @@ export default defineComponent({
       updateFlowProp,
       pageFlowData,
       flowId,
+      currentDrawer,
     };
   },
 

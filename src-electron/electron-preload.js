@@ -3,39 +3,31 @@ const {
   promises,
   constants,
   access,
+  accessSync,
   exists,
+  existsSync,
   readFile,
+  readFileSync,
   readdir,
+  readdirSync,
   writeFile,
+  writeFileSync,
   mkdir,
+  mkdirSync,
   unlink,
   unlinkSync,
-  rmSync,
-  writeFileSync,
-  existsSync,
 } = require("fs");
-
-const tachyonFormatVers = "1.0";
-
-// Required
 const { contextBridge } = require("electron");
-// Used to choose the root directory
 import { dialog } from "@electron/remote";
 
-// Use the OS specific path separator to allow use on all OS.
+const { ref } = require("vue");
+
 const osSep = path.sep;
 
-// Consistent means to get a current date string
 const getNow = () => {
   return new Date().toISOString();
 };
 
-/**
- * The functions in the following section are NOT exported in the electronApi.
- * They are used by multiple functions that are exported.
- */
-
-// Open multiple JSON files async and return final result
 const getJsonMulti = async (rootDir, type, idArray) => {
   const objects = [];
 
@@ -51,17 +43,19 @@ const getJsonMulti = async (rootDir, type, idArray) => {
           readResult = await readJson([rootDir, "flows", objectId], "flow");
           break;
       }
-      // Only push successful objects, don't error on failed reads.
+
       if (readResult.status === "success") {
         objects.push(readResult.data);
       }
     })
   );
 
+  console.log("getJsonMulti");
+  console.log(objects);
+
   return objects;
 };
 
-// We can't use the preferred 'create and handle failure' paradigm because we want to offer the user an option.
 const ensureSubDir = async (rootDir, subDir) => {
   const fullPath = rootDir + osSep + subDir;
   try {
@@ -75,7 +69,6 @@ const ensureSubDir = async (rootDir, subDir) => {
   }
 };
 
-// Read and Parse a JSON file
 const readJson = async (dirs = [], fileName) => {
   return new Promise((resolve, reject) => {
     try {
@@ -100,26 +93,6 @@ const readJson = async (dirs = [], fileName) => {
   });
 };
 
-const writeJson = async (dirs = [], fileName, fileData) => {
-  try {
-    const dirPath = dirs.join(osSep);
-    console.log(dirPath);
-    mkdirSync(dirPath, { recursive: true });
-    const fullPath = dirPath + osSep + fileName + ".json";
-    writeFileSync(fullPath, JSON.stringify(fileData, null, 2));
-
-    return { status: "success", data: fileData };
-  } catch (e) {
-    console.log(e);
-    return { status: "failure" };
-  }
-},
-
-/**
- * The functions ARE EXPORTED in the electronApi.
- * Any code in the app can call `electronApi.:function`.
- * Because they all are exposeInTheMainWorld via the contextBridge
- */
 contextBridge.exposeInMainWorld("electronApi", {
   // Triggers an OS local file dialog and returns the selected directory.
   openDirectoryDialog: async (title, folder, filters) => {
@@ -133,23 +106,11 @@ contextBridge.exposeInMainWorld("electronApi", {
     return response.filePaths;
   },
 
-  // Create required directories if missing
   initRootDir: async (selectedDir) => {
     ensureSubDir(selectedDir, "flows");
     ensureSubDir(selectedDir, "nuggets");
-    writeTachyonJson(selectedDir);
   },
 
-  // Create a file signifying this is a TachyonCMS rootDir
-  // This is used a guard when deleting a directory.
-  // It will also contain meta and management info down the road.
-  writeTachyonJson: async (selectedDir) => {
-    // Basic meta data
-    const metaData = { createdAt: getNow(), dataFormatVers: tachyonFormatVers };
-    writeJson([selectedDir], `tachyon`, metaData)
-  },
-
-  // Verify the user has read/write access to the selected directory
   dirAccessible: async (dirSegments) => {
     try {
       const dir = dirSegments.join(osSep);
@@ -164,7 +125,6 @@ contextBridge.exposeInMainWorld("electronApi", {
     }
   },
 
-  // Load Flow files from the selected directory
   getElectronFlows: async (rootDir) => {
     const defaultFlows = [];
 
@@ -192,7 +152,6 @@ contextBridge.exposeInMainWorld("electronApi", {
       return defaultFlows;
     }
   },
-
   writeJson: async (dirs = [], fileName, fileData) => {
     try {
       const dirPath = dirs.join(osSep);
@@ -321,4 +280,68 @@ contextBridge.exposeInMainWorld("electronApi", {
       return { status: "failure" };
     }
   },
+
+  /* createSubDir: async (rootDir, subDir) => {
+    // calling showOpenDialog from Electron API: https://www.electronjs.org/docs/latest/api/dialog/
+    const fullPath = rootDir + osSep + subDir;
+    try {
+      const currentTime = getNow();
+
+      if (existsSync(fullPath)) {
+        return { lastLoadedAt: currentTime };
+      }
+
+      mkdirSync(fullPath);
+
+      return { createdAt: currentTime };
+    } catch (e) {
+      return { error: "failed to create " + fullPath };
+    }
+  },
+  getElectronFlows: async () => {
+    try {
+      console.log("GET - All Flows from ");
+      console.log(rootDir);
+      // The parent directory that we expect to find Flows defined in sub-directories.
+      const flowsDir = rootDir + osSep + "flows" + osSep;
+
+      const flows = ref([]);
+
+      const dirEntries = readdirSync(flowsDir, { withFileTypes: true });
+
+      const dirs = dirEntries
+        .filter((de) => de.isDirectory())
+        .map((de) => de.name);
+
+      for (const flowId of dirs) {
+        try {
+          const fullPath = flowsDir + osSep + flowId + osSep + `flow.json`;
+          const rawFlow = readFileSync(fullPath, "utf8");
+          flows.value.push(JSON.parse(rawFlow));
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      console.log(flows.value);
+      return flows;
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  writeFile: async (dirs = [], fileName, fileData) => {
+    try {
+      console.log(dirs);
+
+      const dirPath = dirs.join(osSep);
+      console.log(dirPath);
+      mkdirSync(dirPath, { recursive: true });
+      const fullPath = dirPath + osSep + "flow.json";
+      writeFileSync(fullPath, JSON.stringify(fileData, null, 2));
+
+      return { status: "success" };
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  */
 });

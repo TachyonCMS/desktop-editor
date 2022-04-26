@@ -51,29 +51,11 @@
         v-model="formExpanded"
         v-if="flowSource"
       >
-        <template v-if="!useAuth || isSignedIn">
-          <new-flow-form
-            :condensed="true"
-            :openFlowChecked="true"
-            @isSubmitted="formExpanded = false"
-          ></new-flow-form>
-        </template>
-        <template v-else>
-          <q-card>
-            <q-card-section>
-              You must sign in to create a flow. Accounts are free, sign up
-              today to share your information and expertise.
-            </q-card-section>
-            <q-card-actions align="center" v-if="showEntryNav">
-              <enter-button
-                label="Join Now!"
-                toRoute="/profile?is=signup"
-                class="cta"
-                @click="this.$emit('toggleDrawer')"
-              ></enter-button>
-            </q-card-actions>
-          </q-card>
-        </template>
+        <new-flow-form
+          :condensed="true"
+          :openFlowChecked="true"
+          @isSubmitted="formExpanded = false"
+        ></new-flow-form>
       </q-expansion-item>
 
       <q-separator></q-separator>
@@ -542,15 +524,13 @@ export default defineComponent({
   components: {
     NewFlowForm,
     DateDisplay,
-    EnterButton,
+    //  EnterButton,
   },
   setup() {
     const $q = useQuasar();
 
     // Use the `/auth` route or isSignedIn state to trigger hiding the entry navigation.
     const route = useRoute();
-
-    const useAuth = false;
 
     const {
       updateFlowProp,
@@ -562,17 +542,6 @@ export default defineComponent({
       setFlowSource,
     } = useFlows();
 
-    // Enable running without auth locally and with Auth when deployed to the cloud.
-    let isSignedIn = false;
-    let showEntryNav = false;
-    if (useAuth) {
-      // Track changes to auth store values using computed properties
-      isSignedIn = computed(() => store.state.auth.isSignedIn);
-
-      showEntryNav = computed(() => {
-        return route.path === "/auth" || isSignedIn.value ? false : true;
-      });
-    }
     const flowId = computed(() => {
       return route.params.flowId;
     });
