@@ -10,6 +10,9 @@ Node 10 OR Node 12 is required, earlier or later versions will fail strangely.
 yarn global add @quasar/cli
 ```
 
+Additional help is available here.
+https://v1.quasar.dev/quasar-cli/installation
+
 ## Get the code
 
 ```bash
