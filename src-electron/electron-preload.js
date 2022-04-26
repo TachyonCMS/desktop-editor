@@ -16,6 +16,7 @@ const {
   mkdirSync,
   unlink,
   unlinkSync,
+  rmSync,
 } = require("fs");
 const { contextBridge } = require("electron");
 import { dialog } from "@electron/remote";

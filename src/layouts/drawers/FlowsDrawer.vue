@@ -590,11 +590,35 @@ export default defineComponent({
         "nuggets",
       ]);
 
+      console.log(hasFlowsDir);
+      console.log(hasNuggetsDir);
+
       if (hasFlowsDir && hasNuggetsDir) {
         await this.setFlowSource(selectedDir);
         this.$router.push("/flows");
         this.$emit("toggleDrawer");
         console.log("EXISTING ROOTDIR");
+      } else {
+        console.log("NEW ROOTDIR");
+        this.$q
+          .dialog({
+            title: "Confirm New Root Directory",
+            message:
+              "Required subdirectories are missing. Click 'OK' to initialize the directory or cancel to choose another directory.",
+            cancel: true,
+            persistent: true,
+          })
+          .onOk((data) => {
+            electronApi.initRootDir(selectedDir);
+            this.flowSource = selectedDir;
+            this.$router.push("/flows");
+          })
+          .onCancel(() => {
+            // console.log('>>>> Cancel')
+          })
+          .onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
       }
     },
     async confirmDeleteFlow(flowId, name) {
