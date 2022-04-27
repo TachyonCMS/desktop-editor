@@ -5,6 +5,7 @@ import { date } from "quasar";
 import { Platform } from "quasar";
 
 import electronLocal from "./flowDrivers/useElectronLocal";
+import electronStorj from "./flowDrivers/useElectronStorj";
 
 // GLOBAL
 // A map of Flows w/ ID as index.
@@ -25,7 +26,7 @@ const pageFlowId = ref(null);
 
 // The `type` of connection.
 // lcs|electron|amplifyApi
-const flowConnector = ref(null);
+const flowDriver = ref(null);
 
 // The level above Flows.
 // In Electron it is the selected root dir.
@@ -58,30 +59,31 @@ export default function useFlows() {
   };
 
   // Connectors object, this does not need to be reactive
-  const flowConnectors = {};
+  const flowDrivers = {};
 
   // Load composable functions as connectors.
   // The key can be used as the _readModule and/or _writeModule
   if (Platform.is.electron) {
-    flowConnectors.electron = electronLocal();
+    flowDrivers.electron = electronLocal();
+    flowDrivers.electronStorj = electronStorj();
   }
 
   // Derive list of connector options from those loaded above
-  const flowConnectorList = computed(() => {
+  const flowDriverList = computed(() => {
     const connectors = [];
 
-    for (const [key, value] of Object.entries(flowConnectors)) {
+    for (const [key, value] of Object.entries(flowDrivers)) {
       connectors.push(key);
     }
     return connectors;
   });
 
-  // Set the flowConnector
-  const setFlowConnector = (newConnector) => {
-    flowConnector.value = newConnector;
+  // Set the flowDriver
+  const setFlowDriver = (driver) => {
+    flowDriver.value = driver;
   };
 
-  // Set the flowConnector
+  // Set the flowDriver Source
   const setFlowSource = (newSource) => {
     flowSource.value = newSource;
   };
@@ -90,24 +92,22 @@ export default function useFlows() {
   const loadFlows = async () => {
     console.info("loading flows");
     console.info(
-      "Connector: " + flowConnector.value + " Source: " + flowSource.value
+      "Connector: " + flowDriver.value + " Source: " + flowSource.value
     );
     try {
-      if (flowConnector.value && flowSource.value) {
+      if (flowDriver.value && flowSource.value) {
         // Use the defined connector
-        flowConnectors[flowConnector.value]
-          .setRootDir(flowSource.value)
-          .then(() => {
-            flowConnectors[flowConnector.value].loadFlows().then((flows) => {
-              console.debug(flows);
-              if (flows) {
-                flows.flows.map((key) => {
-                  flowMap.set(key.id, key);
-                });
-              }
-              flowsLoaded.value = true;
-            });
+        flowDrivers[flowDriver.value].setRootDir(flowSource.value).then(() => {
+          flowDrivers[flowDriver.value].loadFlows().then((flows) => {
+            console.debug(flows);
+            if (flows) {
+              flows.flows.map((key) => {
+                flowMap.set(key.id, key);
+              });
+            }
+            flowsLoaded.value = true;
           });
+        });
       }
     } catch (e) {
       console.log("Error Loading Flows");
@@ -122,11 +122,11 @@ export default function useFlows() {
     withNuggetSeq = false
   ) => {
     try {
-      if (flowConnector.value && flowSource.value) {
-        await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      if (flowDriver.value && flowSource.value) {
+        await flowDrivers[flowDriver.value].setRootDir(flowSource.value);
 
         // Use the defined connector
-        return flowConnectors[flowConnector.value]
+        return flowDrivers[flowDriver.value]
           .getFlowById(flowId, withNuggets, withNuggetSeq)
           .then((flows) => {
             const flow = flows.flows[0];
@@ -166,9 +166,9 @@ export default function useFlows() {
   const createFlow = async (flowData) => {
     try {
       // Use the defined connector
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowDrivers[flowDriver.value].setRootDir(flowSource.value);
 
-      return flowConnectors[flowConnector.value]
+      return flowDrivers[flowDriver.value]
         .createFlow(flowData)
         .then((flowResult) => {
           console.log(flowResult);
@@ -186,9 +186,9 @@ export default function useFlows() {
   const createNugget = async (flowId, nuggetData, prevNugId = null) => {
     try {
       // Use the defined connector
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowDrivers[flowDriver.value].setRootDir(flowSource.value);
 
-      flowConnectors[flowConnector.value]
+      flowDrivers[flowDriver.value]
         .createNugget(flowId, nuggetData)
         .then((nuggetResult) => {
           console.log(nuggetResult);
@@ -207,11 +207,9 @@ export default function useFlows() {
   const deleteFlow = async (flowId) => {
     try {
       // Use the defined connector
-      flowConnectors[flowConnector.value]
-        .deleteFlow(flowId)
-        .then((flowResult) => {
-          flowMap.delete(flowId);
-        });
+      flowDrivers[flowDriver.value].deleteFlow(flowId).then((flowResult) => {
+        flowMap.delete(flowId);
+      });
     } catch (e) {
       console.log("Error Deleting Flow");
       console.log(e);
@@ -223,7 +221,7 @@ export default function useFlows() {
   const updateFlowProp = async (flowId, propName, propValue) => {
     try {
       // Use the defined connector
-      flowConnectors[flowConnector.value]
+      flowDrivers[flowDriver.value]
         .updateFlowProp(flowId, propName, propValue)
         .then((flowResult) => {
           flowMap.set(flowId, flowResult);
@@ -236,10 +234,10 @@ export default function useFlows() {
 
   const addToNuggetSeq = async (flowId, nuggetId, prevNugId = null) => {
     try {
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowDrivers[flowDriver.value].setRootDir(flowSource.value);
       console.log(flowId + " " + nuggetId + " " + prevNugId);
       //Get the existing Flow
-      flowConnectors[flowConnector.value]
+      flowDrivers[flowDriver.value]
         .getFlowNuggetSeqById(flowId)
         .then((seqResult) => {
           console.log(seqResult);
@@ -257,7 +255,7 @@ export default function useFlows() {
               //seqResult.nuggetSeq.splice(insertIx, 0, nuggetId);
             }
           }
-          flowConnectors[flowConnector.value].updateFlowData(
+          flowDrivers[flowDriver.value].updateFlowData(
             flowId,
             { nuggetSeq: newSeq },
             "nuggetSeq"
@@ -275,7 +273,7 @@ export default function useFlows() {
   const updateNuggetProp = async (nuggetId, propName, propValue) => {
     try {
       // Use the defined connector
-      flowConnectors[flowConnector.value]
+      flowDrivers[flowDriver.value]
         .updateNuggetProp(nuggetId, propName, propValue)
         .then((nuggetResult) => {
           console.log(nuggetResult);
@@ -292,7 +290,7 @@ export default function useFlows() {
     try {
       console.log("deleteNugget:useFlows " + flowId + " " + nuggetId);
       // Use the defined connector
-      flowConnectors[flowConnector.value]
+      flowDrivers[flowDriver.value]
         .deleteNugget(flowId, nuggetId)
         .then((flowResult) => {
           nuggetMap.delete(nuggetId);
@@ -420,7 +418,7 @@ export default function useFlows() {
 
   const freshenData = async () => {
     await flushAll();
-    setFlowConnector("electron");
+    setFlowDriver("electron");
     loadFlows();
   };
 
@@ -441,9 +439,9 @@ export default function useFlows() {
     nuggetSeq,
     isPublished,
     publishedNuggets,
-    flowConnector: computed(() => flowConnector.value),
-    flowConnectorList,
-    setFlowConnector,
+    flowDriver: computed(() => flowDriver.value),
+    flowDriverList,
+    setFlowDriver,
     setFlowSource,
     flowSource,
     flowSourceMsg,

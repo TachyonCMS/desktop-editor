@@ -201,7 +201,7 @@ export default defineComponent({
       deleteFlow,
       updateFlowProp,
       flowSource,
-      setFlowConnector,
+      setFlowDriver,
       flushAll,
     } = useFlows();
 
@@ -223,7 +223,7 @@ export default defineComponent({
 
     onMounted(async () => {
       console.debug("Flows Mounted");
-      setFlowConnector("electron");
+      setFlowDriver("electron");
       loadFlows();
     });
 
