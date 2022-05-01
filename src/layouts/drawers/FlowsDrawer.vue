@@ -517,6 +517,8 @@ import useFlows from "../../composables/useFlows";
 
 import DateDisplay from "../../components/site/widgets/DateDisplay.vue";
 
+import SelectProviderSource from "../../components/flows/lists/SelectProviderSource.vue";
+
 export default defineComponent({
   name: "FlowsDrawer",
   props: [],

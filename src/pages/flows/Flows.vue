@@ -223,7 +223,7 @@ export default defineComponent({
 
     onMounted(async () => {
       console.debug("Flows Mounted");
-      setFlowDriver("electron");
+      setFlowDriver("electronStorj");
       loadFlows();
     });
 
