@@ -3,14 +3,14 @@
     <div class="col-3 collection-item-label">{{ label }}:</div>
     <div class="col-9 collection-item-value">
       <span class="cursor-pointer">
-        {{ editValue }}
+        {{ propValue }}
         <q-icon
           size="xs"
           name="edit"
-          v-if="!editValue || editValue.length < 1"
+          v-if="!propValue || propValue.length < 1"
         ></q-icon>
         <q-popup-edit
-          v-model="editValue"
+          :model-value="propValue"
           :validate="(val) => val.length > 0"
           @save="
             (v, iv) => {
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { defineComponent, unref } from "vue";
+import { defineComponent, unref, ref } from "vue";
 import useFlows from "../../../../composables/useFlows";
 
 export default defineComponent({
@@ -81,10 +81,8 @@ export default defineComponent({
   ],
   setup(props) {
     const { updateNuggetProp } = useFlows();
-    const editValue = unref(props.propValue);
     return {
       updateNuggetProp,
-      editValue,
     };
   },
 });
