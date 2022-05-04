@@ -6,7 +6,7 @@
           <q-input
             filled
             v-model="name"
-            label="Name *"
+            label="Private Name *"
             hint="The internal name for the flow."
             ><q-tooltip>
               The name is only visible to you, even when published.
@@ -17,7 +17,7 @@
           <q-input
             filled
             v-model="title"
-            label="Title"
+            label="Public Title"
             hint="The public title for published flows."
             ><q-tooltip>
               A title must be provided to publish the flow.

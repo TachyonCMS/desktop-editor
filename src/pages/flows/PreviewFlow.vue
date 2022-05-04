@@ -1,17 +1,15 @@
 <template>
   <q-page>
-    <q-list>
-      <!-- Show a spinner over the div if the flow hasn't finished loading. -->
-      <template v-if="flowLoaded">
-        <!-- Reactive list of Nuggets from within the Flow object. -->
-        <q-list v-for="nuggetId in flow.nuggetSeq" :key="nuggetId">
-          <div class="nugget-container row col-12">
-            <render-blocks :blockData="nuggetMap.get(nuggetId).blockData">
-            </render-blocks>
-          </div>
-        </q-list>
-      </template>
-    </q-list>
+    <!-- Show a spinner over the div if the flow hasn't finished loading. -->
+    <template v-if="flowLoaded">
+      <!-- Reactive list of Nuggets from within the Flow object. -->
+      <q-list v-for="nuggetId in flow.nuggetSeq" :key="nuggetId">
+        <div class="nugget-container row col-12">
+          <render-blocks :blockData="nuggetMap.get(nuggetId).blockData">
+          </render-blocks>
+        </div>
+      </q-list>
+    </template>
   </q-page>
 </template>
 

@@ -3,25 +3,16 @@ const {
   promises,
   constants,
   access,
-  accessSync,
-  exists,
   existsSync,
   readFile,
-  readFileSync,
-  readdir,
-  readdirSync,
-  writeFile,
-  writeFileSync,
-  mkdir,
   mkdirSync,
-  unlink,
   unlinkSync,
   rmSync,
 } = require("fs");
 const { contextBridge } = require("electron");
 import { dialog } from "@electron/remote";
 
-const { ref } = require("vue");
+const writeFileAtomic = require("write-file-atomic");
 
 const osSep = path.sep;
 
@@ -47,6 +38,10 @@ const getJsonMulti = async (rootDir, type, idArray) => {
 
       if (readResult.status === "success") {
         objects.push(readResult.data);
+        const event = new CustomEvent("flowLoaded", {
+          bubbles: true,
+          detail: readResult.data,
+        });
       }
     })
   );
@@ -127,7 +122,7 @@ contextBridge.exposeInMainWorld("electronApi", {
   },
 
   getElectronFlows: async (rootDir) => {
-    const defaultFlows = [];
+    const flows = [];
 
     try {
       console.log("GET - All Flows from " + rootDir);
@@ -145,12 +140,12 @@ contextBridge.exposeInMainWorld("electronApi", {
 
       const fileFlows = await getJsonMulti(rootDir, "flow", dirs);
 
-      const flows = [...defaultFlows, ...fileFlows];
+      //const flows = [...defaultFlows, ...fileFlows];
 
-      return flows;
+      return fileFlows;
     } catch (e) {
       console.log(e);
-      return defaultFlows;
+      return [];
     }
   },
   writeJson: async (dirs = [], fileName, fileData) => {
@@ -159,12 +154,20 @@ contextBridge.exposeInMainWorld("electronApi", {
       console.log(dirPath);
       mkdirSync(dirPath, { recursive: true });
       const fullPath = dirPath + osSep + fileName + ".json";
-      writeFileSync(fullPath, JSON.stringify(fileData, null, 2));
+      const jsonData = JSON.stringify(fileData, null, 2);
+      return writeFileAtomic(fullPath, jsonData).then((err) => {
+        if (err) {
+          throw err;
+        }
 
-      return { status: "success", data: fileData };
+        return { status: "success", data: fileData };
+      });
     } catch (e) {
       console.log(e);
-      return { status: "failure" };
+      return {
+        status: "error",
+        error: "Failed to write: " + fullPath + ". " + e,
+      };
     }
   },
 

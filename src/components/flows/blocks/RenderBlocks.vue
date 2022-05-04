@@ -31,20 +31,14 @@
 import { defineComponent, ref } from "vue";
 import { useQuasar } from "quasar";
 
-// UID generator (not a true UUID but just as unique)
-// They will get removed before submitting to
-import { nanoid } from "nanoid";
-
 // Renderers
 import HtmlDisplay from "./renders/HtmlDisplay";
 import Heading from "./renders/Heading";
 import Image from "./renders/Image";
 import BasicSeparator from "./renders/Separator";
 
-import Font from "../../site/widgets/Font";
-
 export default defineComponent({
-  name: "BlocksHandler",
+  name: "RenderBlocks",
   props: {
     blockData: {
       type: String,

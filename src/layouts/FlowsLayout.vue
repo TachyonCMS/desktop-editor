@@ -75,7 +75,10 @@
       <component :is="currentDrawer" @toggleDrawer="toggleDrawer"></component>
     </q-drawer>
     <q-page-container>
-      <router-view @appNotification="onAppNotification" />
+      <router-view
+        @appNotification="onAppNotification"
+        @flowLoaded="console.log(event)"
+      />
     </q-page-container>
   </q-layout>
 </template>
