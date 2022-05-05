@@ -1,4 +1,5 @@
 const path = require("path");
+import { rootPath } from "electron-root-path";
 const {
   promises,
   constants,
@@ -19,6 +20,8 @@ const osSep = path.sep;
 const getNow = () => {
   return new Date().toISOString();
 };
+
+console.log(rootPath);
 
 const getJsonMulti = async (rootDir, type, idArray) => {
   const objects = [];

@@ -28,7 +28,10 @@
     </div>
 
     <!-- Image handling -->
+
     <div class="row col-12">
+      <q-file v-model="editorData.url" label="Standard"></q-file>
+      {{ editorData.url }}
       <q-input
         outlined
         v-model="editorData.url"
