@@ -76,7 +76,7 @@ const readJson = async (dirs = [], fileName) => {
         if (err) {
           console.log("err - rejecting with failure");
           console.error(err);
-          reject({ status: "failure" });
+          resolve({ status: "failure" });
         } else {
           const parsedData = JSON.parse(fileData);
           resolve({ status: "success", data: parsedData });

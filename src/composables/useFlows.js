@@ -5,6 +5,7 @@ import { date } from "quasar";
 import { Platform } from "quasar";
 
 import electronLocal from "./flowDrivers/useElectronLocal";
+import storageApi from "./flowDrivers/useStorageApi";
 
 // GLOBAL
 // A map of Flows w/ ID as index.
@@ -24,7 +25,7 @@ const nuggetSeq = ref([]);
 const pageFlowId = ref(null);
 
 // The `type` of connection.
-// lcs|electron|amplifyApi
+// storageApi|electron|amplifyApi
 const flowConnector = ref(null);
 
 // The level above Flows.
@@ -44,7 +45,31 @@ export default function useFlows() {
   // Useful for list item label or button text
   // Displays truncated selection or propmt to select.
   const flowSourceMsg = computed(() => {
-    return flowSource.value ? dirLabel(flowSource.value) : "Select a directory";
+    let msg = "Invalid source, please refresh";
+    switch (flowConnector.value) {
+      case "electron":
+        msg = dirLabel(flowSource.value);
+        break;
+      case "storageApi":
+        msg = dirLabel(flowSource.value.nickname);
+        break;
+    }
+
+    return msg;
+  });
+
+  const flowSourceDetail = computed(() => {
+    let msg = "Invalid Source, please refresh";
+    switch (flowConnector.value) {
+      case "electron":
+        msg = flowSource.value;
+        break;
+      case "storageApi":
+        msg = flowSource.value.apiLogin + " @ " + flowSource.value.rootUrl;
+        break;
+    }
+
+    return msg;
   });
 
   // Truncate a directory label.
@@ -65,6 +90,8 @@ export default function useFlows() {
   if (Platform.is.electron) {
     flowConnectors.electron = electronLocal();
   }
+  // Always load the storage API as an option
+  flowConnectors.storageApi = storageApi();
 
   // Derive list of connector options from those loaded above
   const flowConnectorList = computed(() => {
@@ -78,12 +105,14 @@ export default function useFlows() {
 
   // Set the flowConnector
   const setFlowConnector = (newConnector) => {
+    console.log(newConnector);
     flowConnector.value = newConnector;
   };
 
-  // Set the flowConnector
+  // Set the flowSource here and in driver
   const setFlowSource = (newSource) => {
     flowSource.value = newSource;
+    flowConnectors[flowConnector.value].setSource(newSource);
   };
 
   // Get all flows, @todo add pagination
@@ -94,20 +123,14 @@ export default function useFlows() {
     );
     try {
       if (flowConnector.value && flowSource.value) {
-        // Use the defined connector
-        flowConnectors[flowConnector.value]
-          .setRootDir(flowSource.value)
-          .then(() => {
-            flowConnectors[flowConnector.value].loadFlows().then((flows) => {
-              console.debug(flows);
-              if (flows) {
-                flows.flows.map((key) => {
-                  flowMap.set(key.id, key);
-                });
-              }
-              flowsLoaded.value = true;
+        flowConnectors[flowConnector.value].loadFlows().then((flows) => {
+          if (flows) {
+            flows.flows.map((key) => {
+              flowMap.set(key.id, key);
             });
-          });
+          }
+          flowsLoaded.value = true;
+        });
       }
     } catch (e) {
       console.log("Error Loading Flows");
@@ -123,7 +146,7 @@ export default function useFlows() {
   ) => {
     try {
       if (flowConnector.value && flowSource.value) {
-        await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+        // await flowConnectors[flowConnector.value].setSource(flowSource.value);
 
         // Use the defined connector
         return flowConnectors[flowConnector.value]
@@ -166,7 +189,7 @@ export default function useFlows() {
   const createFlow = async (flowData) => {
     try {
       // Use the defined connector
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowConnectors[flowConnector.value].setSource(flowSource.value);
 
       return flowConnectors[flowConnector.value]
         .createFlow(flowData)
@@ -186,7 +209,7 @@ export default function useFlows() {
   const createNugget = async (flowId, nuggetData, prevNugId = null) => {
     try {
       // Use the defined connector
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowConnectors[flowConnector.value].setSource(flowSource.value);
 
       flowConnectors[flowConnector.value]
         .createNugget(flowId, nuggetData)
@@ -236,7 +259,7 @@ export default function useFlows() {
 
   const addToNuggetSeq = async (flowId, nuggetId, prevNugId = null) => {
     try {
-      await flowConnectors[flowConnector.value].setRootDir(flowSource.value);
+      await flowConnectors[flowConnector.value].setSource(flowSource.value);
       console.log(flowId + " " + nuggetId + " " + prevNugId);
       //Get the existing Flow
       flowConnectors[flowConnector.value]
@@ -408,6 +431,12 @@ export default function useFlows() {
     return inPublication;
   };
 
+  // Perform whatever is needed to initialize the connection with the backend.
+  // storageApi - verifies the rootUrl, apiLogin amd apiPassword all work together.
+  const connectSource = (connectionInfo) => {
+    console.log(connectionInfo);
+  };
+
   // Get rid of all data from previous flowSource
   const flushAll = async () => {
     flowMap.clear();
@@ -420,7 +449,7 @@ export default function useFlows() {
 
   const freshenData = async () => {
     await flushAll();
-    setFlowConnector("electron");
+    //setFlowConnector("electron");
     loadFlows();
   };
 
@@ -447,6 +476,7 @@ export default function useFlows() {
     setFlowSource,
     flowSource,
     flowSourceMsg,
+    flowSourceDetail,
     flushAll,
     freshenData,
     nuggetSeqMap,

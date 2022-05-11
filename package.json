@@ -13,6 +13,7 @@
   "dependencies": {
     "@electron/remote": "^2.0.8",
     "@quasar/extras": "^1.0.0",
+    "axios": "^0.27.2",
     "core-js": "^3.6.5",
     "electron-store": "^8.0.1",
     "quasar": "^2.6.0",

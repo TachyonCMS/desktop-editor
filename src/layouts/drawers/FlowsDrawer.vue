@@ -8,8 +8,28 @@
       <q-item
         clickable
         v-ripple
-        @click="onSelectRootDir"
+        v-show="flowConnector"
+        @click="confirmClosingSource"
+      >
+        <q-item-section avatar>
+          <q-icon name="folder" v-show="flowConnector == 'electron'"></q-icon>
+          <q-icon name="api" v-show="flowConnector == 'storageApi'"></q-icon>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label
+            >{{ flowSourceMsg
+            }}<q-tooltip>{{ flowSourceDetail }}</q-tooltip></q-item-label
+          >
+        </q-item-section>
+      </q-item>
+
+      <q-item
+        clickable
+        v-ripple
+        @click="onSelectConnector('electron')"
         v-if="$q.platform.is.electron"
+        v-show="!flowConnector"
       >
         <q-item-section avatar>
           <q-icon name="folder" />
@@ -17,13 +37,29 @@
 
         <q-item-section>
           <q-item-label
-            >{{ flowSourceMsg
-            }}<q-tooltip v-if="flowSource">{{
-              flowSource
-            }}</q-tooltip></q-item-label
+            >Select a root directory<q-tooltip
+              >A flows and nuggets directory will be created if they don't
+              exist.</q-tooltip
+            ></q-item-label
           >
         </q-item-section>
       </q-item>
+
+      <q-expansion-item
+        expand-separator
+        icon="api"
+        label="Connect Storage API"
+        caption="Requires credentials"
+        v-model="formExpanded"
+        v-show="!flowConnector"
+      >
+        <api-credentials-form
+          @isSubmitted="
+            formExpanded = false;
+            onSelectConnector('storageApi');
+          "
+        ></api-credentials-form>
+      </q-expansion-item>
 
       <q-item
         clickable
@@ -507,6 +543,7 @@ import { useRouter } from "vue-router";
 
 // A form to create a new flow
 import NewFlowForm from "../../components/flows/forms/NewFlowForm.vue";
+import ApiCredentialsForm from "../../components/flows/forms/ApiCredentialsForm.vue";
 // An inline form to edit the Flow meta data
 //import FlowMetaInlineForm from "../../components/flow/form/FlowMetaInlineForm.vue";
 // An "enter" nav button to show visitors who haven't signed in.
@@ -524,7 +561,7 @@ export default defineComponent({
   components: {
     NewFlowForm,
     DateDisplay,
-    //  EnterButton,
+    ApiCredentialsForm,
   },
   setup() {
     const $q = useQuasar();
@@ -539,7 +576,10 @@ export default defineComponent({
       flowMap,
       flowSource,
       flowSourceMsg,
+      flowSourceDetail,
       setFlowSource,
+      setFlowConnector,
+      flowConnector,
     } = useFlows();
 
     const flowId = computed(() => {
@@ -564,11 +604,31 @@ export default defineComponent({
       outlineNuggets,
       formExpanded,
       flowSourceMsg,
+      flowSourceDetail,
       flowSource,
       setFlowSource,
+      setFlowConnector,
+      flowConnector,
     };
   },
   methods: {
+    async onSelectConnector(connector) {
+      // Record the connector choice
+      this.setFlowConnector(connector);
+
+      // Display sources options for the connector
+      switch (connector) {
+        case "electron":
+          this.onSelectRootDir();
+          break;
+        case "storageApi":
+          this.onStorageApi();
+          break;
+      }
+    },
+    async onStorageApi() {
+      console.log("storageAPI");
+    },
     async onSelectRootDir() {
       const selection = await electronApi.openDirectoryDialog(
         "Select the root folder",
@@ -594,7 +654,7 @@ export default defineComponent({
       console.log(hasNuggetsDir);
 
       if (hasFlowsDir && hasNuggetsDir) {
-        await this.setFlowSource(selectedDir);
+        this.setFlowSource(selectedDir);
         this.$router.push("/flows");
         this.$emit("toggleDrawer");
         console.log("EXISTING ROOTDIR");
@@ -647,6 +707,25 @@ export default defineComponent({
               message: "You must enter the flow name: '" + name,
             });
           }
+        })
+        .onCancel(() => {
+          // console.log('>>>> Cancel')
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
+        });
+    },
+    async confirmClosingSource(f) {
+      this.$q
+        .dialog({
+          title: "Confirm Closing Source",
+          message: "Are you sure you want to close this source?",
+          cancel: true,
+          persistent: false,
+        })
+        .onOk((data) => {
+          this.setFlowSource(null);
+          this.setFlowConnector(null);
         })
         .onCancel(() => {
           // console.log('>>>> Cancel')

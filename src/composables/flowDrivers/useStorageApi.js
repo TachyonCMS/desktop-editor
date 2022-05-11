@@ -1,8 +1,6 @@
-//import { api } from "boot/axios";
+import { storageApi } from "boot/axios";
 
 import { ref } from "vue";
-
-import { nanoid } from "nanoid";
 
 const rootDir = ref(null);
 
@@ -15,10 +13,10 @@ export default () => {
   const loadFlows = async () => {
     try {
       console.log("Electron Flows");
-      const flows = await electronApi.getElectronFlows(rootDir.value);
+      const flows = await storageApi.get("/flows");
       return { flows: flows };
     } catch (e) {
-      console.log("Error Loading Electron Flows");
+      console.log("Error Loading StorageAPI Flows");
     }
   };
 
