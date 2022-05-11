@@ -614,7 +614,7 @@ export default defineComponent({
   methods: {
     async onSelectConnector(connector) {
       // Record the connector choice
-      this.setFlowConnector(connector);
+      //this.setFlowConnector(connector);
 
       // Display sources options for the connector
       switch (connector) {
@@ -654,6 +654,7 @@ export default defineComponent({
       console.log(hasNuggetsDir);
 
       if (hasFlowsDir && hasNuggetsDir) {
+        this.setFlowConnector("electron");
         this.setFlowSource(selectedDir);
         this.$router.push("/flows");
         this.$emit("toggleDrawer");
