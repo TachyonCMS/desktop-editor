@@ -10,30 +10,11 @@ export default () => {
     rootDir.value = dir;
   };
 
-  const checkAuth = async (flowSource) => {
-    console.log(flowSource);
-    try {
-      console.log("Storage API Check Auth for " + flowSource.rootUrl);
-      storageApi.defaults.baseURL = flowSource.rootUrl;
-      storageApi.defaults.auth = {
-        username: flowSource.apiLogin,
-        password: flowSource.apiPassword,
-      };
-
-      const checkResult = await storageApi.get("/auth/check");
-      console.log(checkResult);
-      //return checkResult.data;
-    } catch (e) {
-      console.log("Error Loading StorageAPI Flows");
-    }
-  };
-
   const loadFlows = async () => {
     try {
-      console.log("Storage API Flows");
+      console.log("Electron Flows");
       const flows = await storageApi.get("/flows");
-      console.log(flows);
-      return flows.data;
+      return { flows: flows };
     } catch (e) {
       console.log("Error Loading StorageAPI Flows");
     }
@@ -353,6 +334,5 @@ export default () => {
     setSource,
     getFlowNuggetSeqById,
     updateFlowData,
-    checkAuth,
   };
 };

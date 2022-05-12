@@ -70,7 +70,12 @@
       </template>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer
+      :show-if-above="false"
+      v-model="leftDrawerOpen"
+      side="left"
+      bordered
+    >
       <!-- drawer content -->
       <component :is="currentDrawer" @toggleDrawer="toggleDrawer"></component>
     </q-drawer>

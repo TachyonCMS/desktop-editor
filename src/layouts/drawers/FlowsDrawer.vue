@@ -37,7 +37,7 @@
 
         <q-item-section>
           <q-item-label
-            >Select a root directory<q-tooltip
+            >Select a local directory<q-tooltip
               >A flows and nuggets directory will be created if they don't
               exist.</q-tooltip
             ></q-item-label
@@ -48,7 +48,7 @@
       <q-expansion-item
         expand-separator
         icon="api"
-        label="Connect Storage API"
+        label="Connect to Storage API"
         caption="Requires credentials"
         v-model="formExpanded"
         v-show="!flowConnector"
@@ -61,6 +61,26 @@
         ></api-credentials-form>
       </q-expansion-item>
 
+      <template v-if="hasAmplifyS3">
+        <q-item
+          clickable
+          v-ripple
+          @click="onSelectConnector('amplifyS3')"
+          v-show="!flowConnector"
+        >
+          <q-item-section avatar>
+            <q-icon name="cloud" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label
+              >AWS Amplify S3<q-tooltip
+                >Connect to the built-in AWS S3 cloud storage.</q-tooltip
+              ></q-item-label
+            >
+          </q-item-section>
+        </q-item>
+      </template>
       <q-item
         clickable
         v-ripple
@@ -569,6 +589,10 @@ export default defineComponent({
     // Use the `/auth` route or isSignedIn state to trigger hiding the entry navigation.
     const route = useRoute();
 
+    // Is Amplify S3 Storage enabled?
+    // @todo Make computed function that checks for Amplify
+    const hasAmplifyS3 = false;
+
     const {
       updateFlowProp,
       deleteFlow,
@@ -580,6 +604,7 @@ export default defineComponent({
       setFlowSource,
       setFlowConnector,
       flowConnector,
+      checkAuth,
     } = useFlows();
 
     const flowId = computed(() => {
@@ -609,6 +634,8 @@ export default defineComponent({
       setFlowSource,
       setFlowConnector,
       flowConnector,
+      hasAmplifyS3,
+      checkAuth,
     };
   },
   methods: {
@@ -627,11 +654,16 @@ export default defineComponent({
       }
     },
     async onStorageApi() {
-      console.log("storageAPI");
+      // Check Auth to verify the URL and credentials provided are valid
+      if (this.checkAuth()) {
+        console.log("Auth OK");
+      } else {
+        console.log("Auth Failed");
+      }
     },
     async onSelectRootDir() {
       const selection = await electronApi.openDirectoryDialog(
-        "Select the root folder",
+        "TachyonCMS Content Root",
         "folder",
         {
           name: "All Files",
@@ -640,46 +672,49 @@ export default defineComponent({
       );
       const selectedDir = selection[0];
       console.log(selectedDir);
+      if (selectedDir) {
+        const hasFlowsDir = await electronApi.dirAccessible([
+          selectedDir,
+          "flows",
+        ]);
+        const hasNuggetsDir = await electronApi.dirAccessible([
+          selectedDir,
+          "nuggets",
+        ]);
 
-      const hasFlowsDir = await electronApi.dirAccessible([
-        selectedDir,
-        "flows",
-      ]);
-      const hasNuggetsDir = await electronApi.dirAccessible([
-        selectedDir,
-        "nuggets",
-      ]);
+        console.log(hasFlowsDir);
+        console.log(hasNuggetsDir);
 
-      console.log(hasFlowsDir);
-      console.log(hasNuggetsDir);
-
-      if (hasFlowsDir && hasNuggetsDir) {
-        this.setFlowConnector("electron");
-        this.setFlowSource(selectedDir);
-        this.$router.push("/flows");
-        this.$emit("toggleDrawer");
-        console.log("EXISTING ROOTDIR");
-      } else {
-        console.log("NEW ROOTDIR");
-        this.$q
-          .dialog({
-            title: "Confirm New Root Directory",
-            message:
-              "Required subdirectories are missing. Click 'OK' to initialize the directory or cancel to choose another directory.",
-            cancel: true,
-            persistent: true,
-          })
-          .onOk((data) => {
-            electronApi.initRootDir(selectedDir);
-            this.flowSource = selectedDir;
-            this.$router.push("/flows");
-          })
-          .onCancel(() => {
-            // console.log('>>>> Cancel')
-          })
-          .onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-          });
+        if (hasFlowsDir && hasNuggetsDir) {
+          this.setFlowConnector("electron");
+          this.setFlowSource(selectedDir);
+          this.$emit("toggleDrawer");
+          this.$router.push("/flows");
+          console.log("EXISTING ROOTDIR");
+        } else {
+          console.log("NEW ROOTDIR");
+          this.$q
+            .dialog({
+              title: "Confirm New Root Directory",
+              message:
+                "Required subdirectories are missing. Click 'OK' to initialize the directory or cancel to choose another directory.",
+              cancel: true,
+              persistent: true,
+            })
+            .onOk((data) => {
+              electronApi.initRootDir(selectedDir);
+              this.flowSource = selectedDir;
+              this.$router.push("/flows");
+            })
+            .onCancel(() => {
+              // console.log('>>>> Cancel')
+              this.setFlowConnector(null);
+              this.setFlowSource(null);
+            })
+            .onDismiss(() => {
+              // console.log('I am triggered on both OK and Cancel')
+            });
+        }
       }
     },
     async confirmDeleteFlow(flowId, name) {

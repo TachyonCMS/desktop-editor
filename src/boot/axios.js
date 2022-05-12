@@ -3,7 +3,7 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 
-const storageApi = axios.create({ baseURL: "http://localhost:3333" });
+const storageApi = axios.create({ baseURL: "http://localhost" });
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$storageApi

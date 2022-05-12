@@ -75,11 +75,11 @@ export default function useFlows() {
   // Truncate a directory label.
   const dirLabel = (dir) => {
     // If less than 25 char use the whole dir
-    if (dir.length < 25) {
-      return dir;
+    if (dir && dir.length >= 25) {
+      return "..." + dir.substr(-22, 22);
     }
 
-    return "..." + dir.substr(-22, 22);
+    return dir;
   };
 
   // Connectors object, this does not need to be reactive
@@ -453,6 +453,21 @@ export default function useFlows() {
     loadFlows();
   };
 
+  const checkAuth = async () => {
+    try {
+      console.log("Checking Auth for " + flowConnector.value);
+      // Use the defined connector
+      flowConnectors[flowConnector.value]
+        .checkAuth(flowSource.value)
+        .then((checkResult) => {
+          console.log(checkResult);
+        });
+    } catch (e) {
+      console.log("Error Checking Auth");
+      console.log(e);
+    }
+  };
+
   return {
     loadFlows,
     flowsLoaded: readonly(flowsLoaded),
@@ -480,5 +495,6 @@ export default function useFlows() {
     flushAll,
     freshenData,
     nuggetSeqMap,
+    checkAuth,
   };
 }

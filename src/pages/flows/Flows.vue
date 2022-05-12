@@ -160,7 +160,9 @@
         </q-inner-loading>
       </template>
     </template>
-    <template v-else>You must select the root directory</template>
+    <template v-else>
+      <NoFlowSourceSetPage></NoFlowSourceSetPage>
+    </template>
   </q-page>
 </template>
 
@@ -177,11 +179,14 @@ import {
 
 import { useQuasar } from "quasar";
 
+import { useRouter } from "vue-router";
+
 import useFlows from "../../composables/useFlows";
 
 //import NewFlowForm from "../../components/flows/forms/NewFlowForm";
 import DateDisplay from "../../components/site/widgets/DateDisplay";
 import ExpansionFormWrapper from "../../components/site/lists/ExpansionFormWrapper";
+import NoFlowSourceSetPage from "../../pages/flows/NoFlowSourceSetPage";
 import FlowTextProperty from "../../components/flows/forms/fields/FlowTextProperty";
 
 export default defineComponent({
@@ -192,6 +197,7 @@ export default defineComponent({
     DateDisplay,
     ExpansionFormWrapper,
     FlowTextProperty,
+    NoFlowSourceSetPage,
   },
   setup() {
     const {
@@ -201,9 +207,12 @@ export default defineComponent({
       deleteFlow,
       updateFlowProp,
       flowSource,
+      flowConnector,
       setFlowConnector,
       flushAll,
     } = useFlows();
+
+    const router = useRouter();
 
     // Include Quasar for dialog and loading indicator
     // @todo Move this to a component
@@ -222,11 +231,15 @@ export default defineComponent({
     };
 
     onMounted(async () => {
-      console.debug("Flows Mounted");
-      setFlowConnector("electron");
-      loadFlows();
+      if (!flowConnector.value || !flowSource.value) {
+        // If we don't have the info needed to load flows redirect to homepage
+        router.push("/");
+      } else {
+        loadFlows();
+      }
     });
 
+    // If the flowSource chnages flush all current data and load from the new source
     watch(flowSource, (value) => {
       flushAll();
       loadFlows();

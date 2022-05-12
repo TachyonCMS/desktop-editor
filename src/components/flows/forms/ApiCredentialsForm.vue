@@ -74,10 +74,10 @@ export default defineComponent({
   emits: ["appNotification", "isSubmitted"],
   setup(props) {
     const { createFlow } = useFlows();
-    const nickname = ref("");
-    const rootUrl = ref("");
-    const apiLogin = ref("");
-    const apiPassword = ref("");
+    const nickname = ref("Local Storage API");
+    const rootUrl = ref("http://localhost:3333");
+    const apiLogin = ref("admin");
+    const apiPassword = ref("TachyonCMS");
 
     return {
       nickname,
