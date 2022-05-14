@@ -43,22 +43,15 @@ export default () => {
     try {
       console.log("Creating Flow");
 
-      // Set ID and initial timestamps
-      addId(flowData);
+      // Set initial timestamps
       initTimestamps(flowData);
 
-      const result = await electronApi.writeJson(
-        [rootDir.value, "flows", flowData.id],
-        "flow",
-        flowData
-      );
+      const result = await storageApi.post("/flows", flowData);
       console.log(result);
-      if (result.status === "success") {
-        return result.data;
-      }
-      return result.status;
+      return result.data;
     } catch (e) {
       console.log("Error Creating Flow");
+      console.log(e);
     }
   };
 
@@ -66,15 +59,9 @@ export default () => {
     try {
       console.log("deleteFlow " + flowId);
 
-      const result = await electronApi.deleteDir([
-        rootDir.value,
-        "flows",
-        flowId,
-      ]);
+      const result = await storageApi.delete("/flows/" + flowId);
       console.log(result);
-      if (result.status === "success") {
-        return result.deleted;
-      }
+      return result.data;
     } catch (e) {
       console.log("Error Deleting Electron Flow");
       console.log(e);
@@ -99,7 +86,7 @@ export default () => {
       setUpdated(flowData);
 
       // Save the updated Object
-      const result = await electronApi.writeJson(
+      const result = await storageApi.writeJson(
         [rootDir.value, "flows", flowData.id],
         "flow",
         flowData
@@ -117,7 +104,7 @@ export default () => {
 
   const getFlowById = async (flowId, withNuggets = false) => {
     try {
-      const flowResult = await electronApi.getElectronFlowById(
+      const flowResult = await storageApi.getElectronFlowById(
         rootDir.value,
         flowId
       );
@@ -135,7 +122,7 @@ export default () => {
           if (sequencedIds.nuggetSeq) {
             flow.nuggetSeq = sequencedIds.nuggetSeq;
 
-            const nugs = await electronApi.getJsonMulti(
+            const nugs = await storageApi.getJsonMulti(
               rootDir.value,
               "nugget",
               sequencedIds.nuggetSeq
@@ -167,7 +154,7 @@ export default () => {
 
   const getFlowNuggetSeqById = async (flowId) => {
     try {
-      let nuggetSeq = await electronApi.getFlowData(
+      let nuggetSeq = await storageApi.getFlowData(
         rootDir.value,
         flowId,
         "nuggetSeq"
@@ -186,7 +173,7 @@ export default () => {
 
   const updateFlowData = async (flowId, data, dataType) => {
     try {
-      const updateResult = await electronApi.writeJson(
+      const updateResult = await storageApi.writeJson(
         [rootDir.value, "flows", flowId],
         dataType,
         data
@@ -229,7 +216,7 @@ export default () => {
       addId(nuggetData);
       initTimestamps(nuggetData);
 
-      const result = await electronApi.writeJson(
+      const result = await storageApi.writeJson(
         [rootDir.value, "nuggets", nuggetData.id],
         "nugget",
         nuggetData
@@ -250,7 +237,7 @@ export default () => {
       console.log(propName);
       console.log(propValue);
       // Fetch the current Data
-      const dataResult = await electronApi.getElectronNuggetById(
+      const dataResult = await storageApi.getElectronNuggetById(
         rootDir.value,
         nuggetId
       );
@@ -264,7 +251,7 @@ export default () => {
       setUpdated(currentData);
 
       // Save the updated Object,
-      const result = await electronApi.writeJson(
+      const result = await storageApi.writeJson(
         [rootDir.value, "nuggets", currentData.id],
         "nugget",
         currentData
@@ -282,7 +269,7 @@ export default () => {
 
   const getNuggetById = async (nuggetId) => {
     try {
-      const result = await electronApi.readJson(
+      const result = await storageApi.readJson(
         [rootDir.value, "nuggets", nuggetId],
         "nugget"
       );

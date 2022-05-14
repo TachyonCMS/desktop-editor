@@ -37,7 +37,7 @@ export default () => {
       );
       console.log(result);
       if (result.status === "success") {
-        return result.data;
+        return { flow: result.data };
       }
       return result.status;
     } catch (e) {

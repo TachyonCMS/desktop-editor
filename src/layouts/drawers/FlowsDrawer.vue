@@ -762,6 +762,11 @@ export default defineComponent({
         .onOk((data) => {
           this.setFlowSource(null);
           this.setFlowConnector(null);
+          this.pageFlowId = null;
+          this.flowId = null;
+          this.nuggetMap = new Map();
+          this.flowMap = new Map();
+          this.$router.push("/");
         })
         .onCancel(() => {
           // console.log('>>>> Cancel')

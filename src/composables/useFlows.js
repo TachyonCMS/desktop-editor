@@ -187,17 +187,18 @@ export default function useFlows() {
 
   // Create a new Flow and persist it
   const createFlow = async (flowData) => {
+    console.log(flowData);
     try {
       // Use the defined connector
-      await flowConnectors[flowConnector.value].setSource(flowSource.value);
+      //await flowConnectors[flowConnector.value].setSource(flowSource.value);
 
       return flowConnectors[flowConnector.value]
         .createFlow(flowData)
         .then((flowResult) => {
           console.log(flowResult);
-          flowMap.set(flowResult.id, flowResult);
+          flowMap.set(flowResult.id, flowResult.flow);
 
-          return flowResult;
+          return flowResult.flow;
         });
     } catch (e) {
       console.log("Error Creating Flow");
