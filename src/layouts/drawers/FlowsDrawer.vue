@@ -52,6 +52,7 @@
         caption="Requires credentials"
         v-model="formExpanded"
         v-show="!flowConnector"
+        data-cy="expand-storage-api-login"
       >
         <api-credentials-form
           @isSubmitted="

@@ -55,7 +55,12 @@
           class="q-ml-sm subdued-btn"
         ></q-btn>
 
-        <q-btn label="Submit" type="submit" class="action-btn"></q-btn>
+        <q-btn
+          data-cy="storage-api-login-submit"
+          label="Submit"
+          type="submit"
+          class="action-btn"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>

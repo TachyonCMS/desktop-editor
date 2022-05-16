@@ -2,7 +2,14 @@
   <q-layout view="hHh lpR fFf">
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+        <q-btn
+          dense
+          flat
+          round
+          icon="menu"
+          @click="toggleLeftDrawer"
+          data-cy="toggle-drawer-btn"
+        />
 
         <q-toolbar-title>
           <router-link to="/" class="router-link navbar-title toolbar-text">
