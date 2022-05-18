@@ -658,6 +658,7 @@ export default defineComponent({
       // Check Auth to verify the URL and credentials provided are valid
       if (this.checkAuth()) {
         console.log("Auth OK");
+        this.$router.push("/flows");
       } else {
         console.log("Auth Failed");
       }

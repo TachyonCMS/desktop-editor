@@ -22,7 +22,10 @@ export default () => {
 
       const checkResult = await storageApi.get("/auth/check");
       console.log(checkResult);
-      //return checkResult.data;
+      if (checkResult.data && checkResult.data.user) {
+        return checkResult.data;
+      }
+      return;
     } catch (e) {
       console.log("Error Loading StorageAPI Flows");
     }
@@ -42,10 +45,6 @@ export default () => {
   const createFlow = async (flowData) => {
     try {
       console.log("Creating Flow");
-
-      // Set initial timestamps
-      initTimestamps(flowData);
-
       const result = await storageApi.post("/flows", flowData);
       console.log(result);
       return result.data;
@@ -73,29 +72,11 @@ export default () => {
       console.log("Updating Flow");
       console.log(propName);
       console.log(propValue);
-
-      // Fetch the current Flow
-      const flowDataResult = await getFlowById(flowId, false);
-
-      console.log(flowDataResult);
-      const flowData = flowDataResult.flows[0];
-      // Merge the change in
-      flowData[propName] = propValue;
-
-      // Update the modified date
-      setUpdated(flowData);
-
-      // Save the updated Object
-      const result = await storageApi.writeJson(
-        [rootDir.value, "flows", flowData.id],
-        "flow",
-        flowData
-      );
+      const result = await storageApi.post("/flows/" + flowId, {
+        [propName]: propValue,
+      });
       console.log(result);
-      if (result.status === "success") {
-        return result.data;
-      }
-      return result.status;
+      return result.data;
     } catch (e) {
       console.log("Error Updating Flow");
       console.log(e);
@@ -104,42 +85,23 @@ export default () => {
 
   const getFlowById = async (flowId, withNuggets = false) => {
     try {
-      const flowResult = await storageApi.getElectronFlowById(
-        rootDir.value,
-        flowId
-      );
+      let qs = "";
 
-      if (flowResult.status != "success") {
-        return null;
+      if (withNuggets) {
+        qs = "?nuggets=1";
       }
+
+      const flowResult = await storageApi.get("/flows/" + flowId + qs);
+
+      console.log(flowResult);
 
       const flow = flowResult.data;
 
-      if (withNuggets) {
-        try {
-          const sequencedIds = await getFlowNuggetSeqById(flowId);
-          console.log(sequencedIds.nuggetSeq);
-          if (sequencedIds.nuggetSeq) {
-            flow.nuggetSeq = sequencedIds.nuggetSeq;
-
-            const nugs = await storageApi.getJsonMulti(
-              rootDir.value,
-              "nugget",
-              sequencedIds.nuggetSeq
-            );
-            console.log(nugs);
-            flow["nuggets"] = nugs;
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-
       console.log(flow);
 
-      return { flows: [flow] };
+      return flow;
     } catch (e) {
-      console.log("Error Loading Electron Flow: " + flowId);
+      console.log("Error Loading Storage API Flow: " + flowId);
       console.log(e);
     }
   };

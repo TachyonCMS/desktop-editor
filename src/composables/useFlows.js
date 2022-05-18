@@ -196,7 +196,7 @@ export default function useFlows() {
         .createFlow(flowData)
         .then((flowResult) => {
           console.log(flowResult);
-          flowMap.set(flowResult.id, flowResult.flow);
+          flowMap.set(flowResult.flow.id, flowResult.flow);
 
           return flowResult.flow;
         });
@@ -250,7 +250,7 @@ export default function useFlows() {
       flowConnectors[flowConnector.value]
         .updateFlowProp(flowId, propName, propValue)
         .then((flowResult) => {
-          flowMap.set(flowId, flowResult);
+          flowMap.set(flowId, flowResult.flow);
         });
     } catch (e) {
       console.log("Error Updating Flow");

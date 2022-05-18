@@ -11,7 +11,7 @@
         ></q-icon>
         <q-popup-edit
           v-model="editValue"
-          :validate="(val) => val.length > 0"
+          :validate="(val) => val && val.length > 0"
           @save="
             (v, iv) => {
               updateFlowProp(flowId, propName, v);

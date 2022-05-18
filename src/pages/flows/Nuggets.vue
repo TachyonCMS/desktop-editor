@@ -374,8 +374,8 @@ export default defineComponent({
       nuggetSeqMap,
     } = useFlows();
 
-    console.log(nuggetMap);
     console.log(flowMap);
+    console.log(nuggetMap);
 
     const flowId = computed(() => {
       return route.params.flowId;
