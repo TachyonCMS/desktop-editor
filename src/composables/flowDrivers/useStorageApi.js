@@ -170,7 +170,7 @@ export default () => {
     }
   };
 
-  const createNugget = async (flowId, nugget, prevNuggetId = null) => {
+  const createNugget = async (flowId, nugget, prevNugId = null) => {
     try {
       console.log("Creating Nugget for Flow " + flowId);
       try {
@@ -178,7 +178,7 @@ export default () => {
         const postData = {
           flowId: flowId,
           nugget: nugget,
-          prevNuggetId: prevNuggetId,
+          prevNugId: prevNugId,
         };
         const result = await storageApi.post("/nuggets", postData);
         console.log(result);
