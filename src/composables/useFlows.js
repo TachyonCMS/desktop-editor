@@ -146,22 +146,16 @@ export default function useFlows() {
   ) => {
     try {
       if (flowConnector.value && flowSource.value) {
-        // await flowConnectors[flowConnector.value].setSource(flowSource.value);
-
         // Use the defined connector
         return flowConnectors[flowConnector.value]
-          .getFlowById(flowId, withNuggets, withNuggetSeq)
-          .then((flows) => {
-            const flow = flows.flows[0];
-
-            // Is a sequence defined? If not we'll use nuggets in the order they appear.
-            if (flow.nuggetSeq) {
-              nuggetSeqMap.set(flowId, flow.nuggetSeq);
-            }
-
-            if (flow.nuggets) {
+          .getFlowById(flowId, withNuggets)
+          .then((flowData) => {
+            console.log(flowData);
+            const flow = flowData.flow;
+            if (flowData.nuggets) {
+              console.log(flowData.nuggets);
               // Copy, then delete Nuggets from response
-              const nuggets = flow.nuggets;
+              const nuggets = flowData.nuggets;
               // Add each nugget to the nuggetMap
               nuggets.map((key) => {
                 nuggetMap.set(key.id, key);
@@ -169,6 +163,12 @@ export default function useFlows() {
               // Remove the nuggets array from flow
               delete flow.nuggets;
             }
+            // Is a sequence defined? If not we'll use nuggets in the order they appear.
+            if (flow.nuggetSeq) {
+              nuggetSeqMap.set(flowId, flow.nuggetSeq);
+            }
+
+            console.log(nuggetMap);
 
             // Add the flow, minus nuggets, to the same flowMap we use to list Flows.
             flowMap.set(flow.id, flow);
@@ -209,17 +209,24 @@ export default function useFlows() {
   // Create a new Flow and persist it
   const createNugget = async (flowId, nuggetData, prevNugId = null) => {
     try {
-      // Use the defined connector
-      await flowConnectors[flowConnector.value].setSource(flowSource.value);
-
       flowConnectors[flowConnector.value]
-        .createNugget(flowId, nuggetData)
+        .createNugget(flowId, nuggetData, prevNugId)
         .then((nuggetResult) => {
           console.log(nuggetResult);
-          nuggetMap.set(nuggetResult.id, nuggetResult);
-          // Add the nugget to the Flow.nuggetSeq
-          addToNuggetSeq(flowId, nuggetResult.id, prevNugId);
-          return nuggetResult;
+          try {
+            // Update the nugget data in nuggetMap
+            nuggetMap.set(nuggetResult.nugget.id, nuggetResult.nugget);
+            console.log(nuggetMap);
+
+            // Update nuggetSeq in the app
+            nuggetSeqMap.set(flowId, nuggetResult.nuggetSeq);
+            console.log(nuggetSeqMap);
+
+            return nuggetResult.nugget;
+          } catch (e) {
+            console.error("");
+            console.error(e);
+          }
         });
     } catch (e) {
       console.log("Error Creating Nugget");
@@ -258,6 +265,7 @@ export default function useFlows() {
     }
   };
 
+  // DEPRECATED
   const addToNuggetSeq = async (flowId, nuggetId, prevNugId = null) => {
     try {
       await flowConnectors[flowConnector.value].setSource(flowSource.value);
@@ -306,7 +314,7 @@ export default function useFlows() {
           nuggetMap.set(nuggetId, nuggetResult);
         });
     } catch (e) {
-      console.log("Error Updating Flow");
+      console.log("Error Updating Nugget");
       console.log(e);
     }
   };

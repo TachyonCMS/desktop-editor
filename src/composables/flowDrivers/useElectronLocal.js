@@ -74,7 +74,7 @@ export default () => {
       const flowDataResult = await getFlowById(flowId, false);
 
       console.log(flowDataResult);
-      const flowData = flowDataResult.flows[0];
+      const flowData = flowDataResult.flow;
       // Merge the change in
       flowData[propName] = propValue;
 
@@ -204,7 +204,7 @@ export default () => {
     }
   };
 
-  const createNugget = async (flowId, nuggetData) => {
+  const createNugget = async (flowId, nuggetData, prevNuggetId) => {
     try {
       console.log("Creating Nugget for Flow " + flowId);
 
@@ -217,6 +217,10 @@ export default () => {
         "nugget",
         nuggetData
       );
+
+      // Add to the related flow's nuggetSeq
+      addToNuggetSeq(flowId, nuggetData.id, prevNugId);
+
       console.log(result);
       if (result.status === "success") {
         return result.data;

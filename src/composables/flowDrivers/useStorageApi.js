@@ -88,18 +88,18 @@ export default () => {
       let qs = "";
 
       if (withNuggets) {
-        qs = "?nuggets=1";
+        qs = "/?nuggets=1";
       }
 
       const flowResult = await storageApi.get("/flows/" + flowId + qs);
 
       console.log(flowResult);
 
-      const flow = flowResult.data;
+      const flowData = flowResult.data;
 
-      console.log(flow);
+      console.log(flowData);
 
-      return flow;
+      return flowData;
     } catch (e) {
       console.log("Error Loading Storage API Flow: " + flowId);
       console.log(e);
@@ -170,61 +170,40 @@ export default () => {
     }
   };
 
-  const createNugget = async (flowId, nuggetData) => {
+  const createNugget = async (flowId, nugget, prevNuggetId = null) => {
     try {
       console.log("Creating Nugget for Flow " + flowId);
-
-      // Set ID and initial timestamps
-      addId(nuggetData);
-      initTimestamps(nuggetData);
-
-      const result = await storageApi.writeJson(
-        [rootDir.value, "nuggets", nuggetData.id],
-        "nugget",
-        nuggetData
-      );
-      console.log(result);
-      if (result.status === "success") {
+      try {
+        console.log("Creating Nugget");
+        const postData = {
+          flowId: flowId,
+          nugget: nugget,
+          prevNuggetId: prevNuggetId,
+        };
+        const result = await storageApi.post("/nuggets", postData);
+        console.log(result);
         return result.data;
+      } catch (e) {
+        console.error("Error Creating Nugget");
+        console.error(e);
       }
-      return result.status;
     } catch (e) {
-      console.log("Error Creating Electron Nugget");
+      console.error("Error Creating API Storage Nugget");
     }
   };
 
   const updateNuggetProp = async (nuggetId, propName, propValue) => {
     try {
-      console.log("Updating Nugget Prop");
+      console.log("Updating Nugget " + nuggetId);
       console.log(propName);
       console.log(propValue);
-      // Fetch the current Data
-      const dataResult = await storageApi.getElectronNuggetById(
-        rootDir.value,
-        nuggetId
-      );
-
-      console.log(dataResult);
-      const currentData = dataResult.data;
-      // Merge the change in
-      currentData[propName] = propValue;
-
-      // Update the modified date
-      setUpdated(currentData);
-
-      // Save the updated Object,
-      const result = await storageApi.writeJson(
-        [rootDir.value, "nuggets", currentData.id],
-        "nugget",
-        currentData
-      );
+      const result = await storageApi.post("/nuggets/" + nuggetId, {
+        [propName]: propValue,
+      });
       console.log(result);
-      if (result.status === "success") {
-        return result.data;
-      }
-      return result.status;
+      return result.data;
     } catch (e) {
-      console.log("Error Updating Nugget " + nuggetId + " " + propName);
+      console.log("Error Updating Nugget");
       console.log(e);
     }
   };
