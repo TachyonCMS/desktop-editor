@@ -311,7 +311,7 @@ export default function useFlows() {
         .updateNuggetProp(nuggetId, propName, propValue)
         .then((nuggetResult) => {
           console.log(nuggetResult);
-          nuggetMap.set(nuggetId, nuggetResult);
+          nuggetMap.set(nuggetId, nuggetResult.nugget);
         });
     } catch (e) {
       console.log("Error Updating Nugget");
