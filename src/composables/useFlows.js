@@ -322,12 +322,16 @@ export default function useFlows() {
   // Delete a Nugget
   const deleteNugget = async (flowId, nuggetId) => {
     try {
-      console.log("deleteNugget:useFlows " + flowId + " " + nuggetId);
+      console.log("useFlows:deleteNugget " + flowId + " " + nuggetId);
       // Use the defined connector
       flowConnectors[flowConnector.value]
         .deleteNugget(flowId, nuggetId)
-        .then((flowResult) => {
+        .then((delResult) => {
+          console.log(delResult);
+          // Delete from nuggetMap
           nuggetMap.delete(nuggetId);
+          nuggetSeqMap.set(flowId, delResult.nuggetSeq);
+          console.log(nuggetSeqMap);
         });
     } catch (e) {
       console.log("Error Deleting Flow");

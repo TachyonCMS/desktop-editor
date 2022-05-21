@@ -62,7 +62,7 @@ export default () => {
       console.log(result);
       return result.data;
     } catch (e) {
-      console.log("Error Deleting Electron Flow");
+      console.log("Error Deleting Storage API Flow");
       console.log(e);
     }
   };
@@ -208,37 +208,17 @@ export default () => {
     }
   };
 
-  const getNuggetById = async (nuggetId) => {
-    try {
-      const result = await storageApi.readJson(
-        [rootDir.value, "nuggets", nuggetId],
-        "nugget"
-      );
-      console.log(result);
-
-      if (result.status != "success") {
-        return null;
-      }
-
-      return result.data;
-    } catch (e) {
-      console.log("Error Loading Nugget: " + nuggetId);
-    }
-  };
-
-  // Delete Flow reference and Nugget
+  // Delete Nugget and Flow references Nugget
   const deleteNugget = async (flowId, nuggetId) => {
     try {
-      console.log("Deleting Nugget: " + nuggetId);
-      // URL on LCS for POST
-      const url = "/flows/" + flowId + "/nuggets/" + nuggetId;
-
-      // DELETE the data on the LCS
-      return api.delete(url).then((response) => {
-        console.log(response);
-      });
+      console.log("DELETE - Delete Nugget: " + nuggetId);
+      const result = await storageApi.delete(
+        "/flows/" + flowId + "/nuggets/" + nuggetId
+      );
+      console.log(result);
+      return result.data;
     } catch (e) {
-      console.log("Error Deleting Flow");
+      console.log("Error Deleting Nugget");
       console.log(e);
     }
   };

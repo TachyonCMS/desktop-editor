@@ -295,7 +295,7 @@
                     >
                       <q-btn
                         class="subdued-btn"
-                        v-on:click="deleteNugget(flowId, nuggetId)"
+                        v-on:click="confirmDeleteNugget(flowId, nuggetId)"
                         >Delete Nugget</q-btn
                       >
                     </q-card-actions>
@@ -449,6 +449,26 @@ export default defineComponent({
       //nuggetSeqMap,
       nuggetSeq,
     };
+  },
+  methods: {
+    async confirmDeleteNugget(flowId, nuggetId) {
+      this.$q
+        .dialog({
+          title: "Confirm Nugget Deletion",
+          message: "Confirm or cancel deletion of this nugget.",
+          cancel: true,
+          persistent: true,
+        })
+        .onOk((data) => {
+          this.deleteNugget(flowId, nuggetId);
+        })
+        .onCancel(() => {
+          // console.log('>>>> Cancel')
+        })
+        .onDismiss(() => {
+          // console.log('I am triggered on both OK and Cancel')
+        });
+    },
   },
 });
 </script>
