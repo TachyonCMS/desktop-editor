@@ -111,6 +111,8 @@ export default () => {
 
       const flow = flowResult.data;
 
+      let out = null;
+
       if (withNuggets) {
         try {
           const sequencedIds = await getFlowNuggetSeqById(flowId);
@@ -124,16 +126,18 @@ export default () => {
               sequencedIds.nuggetSeq
             );
             console.log(nugs);
-            flow["nuggets"] = nugs;
+            //flow["nuggets"] = nugs;
+
+            out = { flow: flow, nuggets: nugs };
           }
         } catch (e) {
           console.error(e);
         }
       }
 
-      console.log(flow);
+      console.log(out);
 
-      return { flows: [flow] };
+      return out;
     } catch (e) {
       console.log("Error Loading Electron Flow: " + flowId);
       console.log(e);
@@ -204,30 +208,32 @@ export default () => {
     }
   };
 
-  const createNugget = async (flowId, nuggetData, prevNuggetId) => {
+  const createNugget = async (flowId, nugget, prevNuggetId) => {
     try {
       console.log("Creating Nugget for Flow " + flowId);
 
       // Set ID and initial timestamps
-      addId(nuggetData);
-      initTimestamps(nuggetData);
+      addId(nugget);
+      initTimestamps(nugget);
 
-      const result = await electronApi.writeJson(
-        [rootDir.value, "nuggets", nuggetData.id],
+      const nuggetResult = await electronApi.writeJson(
+        [rootDir.value, "nuggets", nugget.id],
         "nugget",
-        nuggetData
+        nugget
       );
 
-      // Add to the related flow's nuggetSeq
-      addToNuggetSeq(flowId, nuggetData.id, prevNugId);
+      if (nuggetResult.status === "success") {
+        // Add to the related flow's nuggetSeq
+        const seqResult = addToNuggetSeq(flowId, nuggetResult.id, prevNugId);
 
-      console.log(result);
-      if (result.status === "success") {
-        return result.data;
+        // Create a structured result
+        const result = { nugget: nuggetResult, ...seqResult };
+
+        return result;
       }
-      return result.status;
     } catch (e) {
-      console.log("Error Creating Electron Nugget");
+      console.error("Error Creating Electron Nugget");
+      console.error(e);
     }
   };
 

@@ -189,6 +189,7 @@ export default () => {
       }
     } catch (e) {
       console.error("Error Creating API Storage Nugget");
+      console.error(e);
     }
   };
 
